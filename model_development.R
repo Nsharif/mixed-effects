@@ -84,3 +84,26 @@ summary(df_eda_2$kp_group_tenure) # initial status for continuous variables
 summary(df_eda_2$log_mrn_avg_riskscore) # initial status for continuous variables
 summary(df_eda_2$prop_blackhisp) # initial status for continuous variables
 summary(df_eda_2$prop_dependents) # initial status for continuous variables
+
+## model 4. updated to model 3. removed not statistically significant variables
+model_4 <- lmer(pen_rate 
+                ~ c_effective_date_year
+                + SC
+                + GA 
+                + MA
+                + c_kp_prop_blackhisp
+                + c_prop_dependents
+                + c_effective_date_year:c_log_mrn_avg_riskscore
+                + c_effective_date_year*CO
+                + c_effective_date_year*firmsize_LTE50
+                + c_effective_date_year*firmsize_GT200_LTE500
+                + c_effective_date_year*firmsize_GT1000_LTE3000
+                + c_effective_date_year*firmsize_GT3000
+                + c_effective_date_year*c_kp_group_tenure
+                + (c_effective_date_year
+                   | region_account_number)
+                , df_eda_2
+                , REML = FALSE)
+summary(model_4)
+
+
