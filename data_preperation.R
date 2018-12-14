@@ -22,8 +22,16 @@ completeFun <- function(data, desiredCols) {
   return(data[completeVec, ])
 }
 
+rmsfe <- function(y_hat,y_actual){
+  round_y_hat <- round(y_hat,3)
+  result <- (((y_hat - y_actual)^2)^0.5)
+  expected_result <- mean(result)
+  round_result <- round(expected_result,3)
+  return(round_result)
+}
+
 ## load dataframe into enviornment
-df_eda <- read.csv("C:\\Users\\Naveed\\Desktop\\Employment\\Kaiser\\R Projects\\Mixed Effects\\KP_NationalAccount.csv", stringsAsFactors = TRUE)
+df_eda <- read.csv("C:\\Users\\Naveed\\Desktop\\Employment\\Kaiser\\Data\\KP_NationalAccount.csv", stringsAsFactors = TRUE)
 glimpse(df_eda, list.len=200)
 mean(is.na(df_eda$kp_c_rate_lowest))
 
@@ -59,10 +67,10 @@ df_eda_2 <- within(df_eda_2, remove(dummy))
 hist(df_eda_2$eligible)
 
 df_eda_2$firm_size <- ifelse(df_eda_2$eligible <= 50, 'LTE50',
-                                ifelse((df_eda_2$eligible > 50 & df_eda_2$eligible <= 200),'GT50_LTE200',
-                                       ifelse((df_eda_2$eligible > 200 & df_eda_2$eligible <= 500),'GT200_LTE500',
-                                              ifelse((df_eda_2$eligible > 500 & df_eda_2$eligible <= 1000),'GT500_LTE1000',
-                                                     ifelse((df_eda_2$eligible > 1000 & df_eda_2$eligible <= 3000),'GT1000_LTE3000','GT3000')))))
+                             ifelse((df_eda_2$eligible > 50 & df_eda_2$eligible <= 200),'GT50_LTE200',
+                                    ifelse((df_eda_2$eligible > 200 & df_eda_2$eligible <= 500),'GT200_LTE500',
+                                           ifelse((df_eda_2$eligible > 500 & df_eda_2$eligible <= 1000),'GT500_LTE1000',
+                                                  ifelse((df_eda_2$eligible > 1000 & df_eda_2$eligible <= 3000),'GT1000_LTE3000','GT3000')))))
 
 prop.table(table(df_eda_2$firm_size))
 
@@ -106,7 +114,16 @@ for( i in colnames(df_eda_2)){
   colnames(df_eda_2)[which(colnames(df_eda_2)==i)] = gsub("df_eda_2_","firmsize_",(i))
 }
 
+## adding discontinuity variables based on the pex variable
+df_eda_2 <- df_eda_2 %>%
+  group_by(region_account_number) %>%
+  mutate(x=ifelse(lag(pex)==1,effective_date_year-lag(effective_date_year),0)) %>%
+  mutate(postpex=cumsum(coalesce(x,0))+x*0) %>%
+  mutate(postpex=ifelse(is.na(postpex),0,postpex)) %>%
+  select(-x)
 
+hist(df_eda_2$postpex)
+df_eda_2 <- as.data.frame(df_eda_2)
 
 
 
